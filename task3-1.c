@@ -1,0 +1,82 @@
+#include <stdio.h>
+#include <math.h>
+#include <stdlib.h>
+#include <float.h>
+#include <stdbool.h>
+/**
+ * @brief считывает значение,
+ * введенное с клавиатуры с проверкой ввода
+ * @return считанное значение
+ */
+double getValue();
+/**
+ * @brief проверяет,что переменная положительная
+ * @param step значение проверяемой переменной
+ */
+void checkStep(const double step);
+/**
+ * @brief проверяет, принадлежит ли значение аргумента функции
+ * её области определения
+ * @param x - аргумент функции
+ * @return true, если аргумент принадлежит ООФ, иначе false
+ */
+bool defineOOF(const double x);
+/**
+ * @brief рассчитывает значение функции y по заданной формуле
+ * @param x значение 
+ * @return 
+ */
+double getY(const double x);
+/**
+ * @brief Точка входа в программу
+ * @return Вернет 0, если программа выполнена корректно. Иначе - 1
+ */
+int main()
+{
+    printf("Вычисление функции y = 3x - 4ln(x) - 5\n");
+	printf("Введите начальное значение: ");
+	double start = getValue();
+	printf("Введите конечное значение: ");
+	double end = getValue();
+	printf("Введите шаг: ");
+	double step = getValue();
+	checkStep(step);
+	for (double x = start; x < end + DBL_EPSILON; x = x + step)
+	{
+		if (defineOOF(x))
+		{
+			printf("x = %.2lf, y = %.4lf\n", x, getY(x));
+		}
+		else
+		{
+			printf("x = %.2lf, не принадлежит ООФ\n", x);
+		}
+	}
+	return 0;
+}
+double getValue()
+{
+	double value = 0;
+	if (scanf("%lf", &value) != 1)
+	{
+		printf("Ошибка\n");
+		abort();
+	}
+	return value;
+}
+void checkStep(const double step)
+{
+	if (step <= DBL_EPSILON)
+	{
+		printf("Ошибка, шаг должен быть положительным\n");
+		abort();
+	}
+}
+bool defineOOF(const double x)
+{
+	return x > 0;
+}
+double getY(const double x)
+{
+	return 3 * x - 4 * log(x) - 5;
+}
