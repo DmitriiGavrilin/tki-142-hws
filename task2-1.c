@@ -1,7 +1,7 @@
 #include <stdio.h>
 /**
-@brief WITH_TEMP_VARIABLE - С использованием третьей переменной
-@brief WITHOUT_TEMP_VARIABLE  - Без использования третьей переменной
+@brief WITH_VARIABLE - С использованием третьей переменной
+@brief WITHOUTP_VARIABLE  - Без использования третьей переменной
 */
 enum SwapMethod {WITH_VARIABLE = 1, WITHOUT_VARIABLE};
 /**
