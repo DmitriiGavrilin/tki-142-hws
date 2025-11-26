@@ -29,22 +29,19 @@ double angleValue(double x1, double y1, double x2, double y2, double x3, double 
  */
 double getValue();
 /**
- * @brief проверяет,что переменная положительная
- * @param value значение проверяемой переменной
- */
-void checkValue(const double value);
-/**
  * @brief Точка входа в программу
  * @return Вернет 0, если программа выполнена корректно. Иначе - 1
  */
-int main() {
-    double x1, y1, x2, y2, x3, y3;
+int main(void) {
     printf("Введите координаты точки A: ");
-    scanf("%lf %lf", &x1, &y1);
+    double x1 = getValue();
+    double y1 = getValue();
     printf("Введите координаты точки B: ");
-    scanf("%lf %lf", &x2, &y2);
+    double x2 = getValue();
+    double y2 = getValue();
     printf("Введите координаты точки C: ");
-    scanf("%lf %lf", &x3, &y3);
+    double x3 = getValue();
+    double y3 = getValue();
     printf("Точки:\n");
     printf("A(%.2f, %.2f)\n", x1, y1);
     printf("B(%.2f, %.2f)\n", x2, y2);
@@ -93,12 +90,4 @@ double getValue()
         abort();
     }
     return value;
-}
-void checkValue(const double value)
-{
-    if (value <= 0 )
-    {
-        printf("Введено неверное значение\n");
-        abort();
-    }
 }
