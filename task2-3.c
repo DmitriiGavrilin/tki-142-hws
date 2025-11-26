@@ -46,7 +46,7 @@ int main(void) {
     printf("A(%.2f, %.2f)\n", x1, y1);
     printf("B(%.2f, %.2f)\n", x2, y2);
     printf("C(%.2f, %.2f)\n", x3, y3);
-    if (collinear(x1, y1, x2, y2, x3, y3) < DBL_EPSILON) 
+    if (fabs(collinear(x1, y1, x2, y2, x3, y3)) < DBL_EPSILON) 
     {
         printf("Точки лежат на одной прямой.\n");
     } 
@@ -54,7 +54,10 @@ int main(void) {
     {
         printf("Точки не лежат на одной прямой.\n");
         double angle_B = angleValue(x1, y1, x2, y2, x3, y3);
-        printf("Угол B в треугольнике: %.2f градусов\n", angle_B);
+        if (angle_B >= 0)
+        {
+            printf("Угол B в треугольнике: %.2f градусов\n", angle_B);
+        }
     }
     return 0;
 }
