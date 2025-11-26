@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <math.h>
 /**
  * @brief считывает значение, 
@@ -13,9 +14,9 @@ double getValue();
 int main(void)
 {
     const double a = 2.5;
-    double x, y;
+    double y;
     printf("Введите значение х:");
-    scanf("%lf", &x);
+    double x = getValue();
     if (x > a)
     {
         double sin_x = sin(x);
@@ -34,7 +35,7 @@ double getValue()
     double value = 0;
     if (!scanf("%lf",&value))
     {
-        printf("Ошибка!\n");
+        printf("Ошибка ввода!\n");
         abort();
     }
     return value;
