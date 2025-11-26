@@ -1,19 +1,25 @@
 #include <stdio.h>
+#include <stdlib.h>
 /**
 @brief WITH_VARIABLE - С использованием третьей переменной
-@brief WITHOUTP_VARIABLE  - Без использования третьей переменной
+@brief WITHOUT_VARIABLE  - Без использования третьей переменной
 */
 enum SwapMethod {WITH_VARIABLE = 1, WITHOUT_VARIABLE};
+/**
+ * @brief считывает целое значение с клавиатуры с проверкой ввода
+ * @return возвращает считанное значение
+ */
+double getValue();
 /**
  * @brief Точка входа в программу
  * @return Вернет 0, если программа выполнена корректно. Иначе - 1
  */
 int main(void) {
-    int a, b, choose;
     printf("Введите значение a:");
-    scanf("%d", &a);
+    double a = getValue();
     printf("Введите значение b:");
-    scanf("%d", &b);
+    double b = getValue();
+    int choose;
     printf("%d. С использованием третьей переменной\n", WITH_VARIABLE);
     printf("%d. Без использования третьей переменной\n", WITHOUT_VARIABLE);
     printf("Введите номер варианта:");
@@ -37,6 +43,16 @@ int main(void) {
             printf("Ошибка: выбран неверный вариант! Допустимые значения: %d или %d\n", WITH_VARIABLE, WITHOUT_VARIABLE);
             return 1;
     }
-    printf("После обмена: a = %d, b = %d\n", a, b);
+    printf("После обмена: a = %lf, b = %lf\n", a, b);
     return 0;
+}
+double getValue()
+{
+    double value = 0;
+    if (!scanf("%lf",&value))
+    {
+        printf("Ошибка\n");
+        abort();
+    }
+    return value;
 }
