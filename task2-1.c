@@ -20,9 +20,9 @@ int main(void) {
     scanf("%d", &choose);
     switch (choose) {
         case WITH_VARIABLE: {
-            int temp = a;
+            int c = a;
             a = b;
-            b = temp;
+            b = c;
             printf("Использован метод с временной переменной\n");
             break;
         }
