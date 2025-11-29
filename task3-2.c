@@ -24,11 +24,11 @@ double getSumN(const int n);
  */
 double getSumE(const double e);
 /**
- * @brief вычисляет факториал числа
- * @param n - число для вычисления факториала
- * @return факториал числа n
+ * @brief рассчитывает коэффициент рекуррентного выражения
+ * @param i текущий индекс
+ * @return рассчитанное значение коэффициента
  */
-long long factorial(int n);
+double getRecurent(const int i);
 /**
  * @brief проверяет, что число положительное
  * @param value - проверяемое значение
@@ -68,24 +68,19 @@ void checkPositive(const double value)
         exit(1);
     }
 }
-long long factorial(int n)
+double getRecurent(const int i)
 {
-    if (n < 0) return 0;
-    if (n == 0 || n == 1) return 1;
-    long long result = 1;
-    for (int i = 2; i <= n; i++)
-    {
-        result *= i;
-    }
-    return result;
+    return (-1.0) * i / (i + 4.0);
 }
 double getSumN(const int n)
 {
-    double result = 0.0;
-    for (int k = 1; k <= n; k++)
+    if (n <= 0) return 0.0;
+    double current = -1.0 / 120.0;
+    double result = current;
+    for (int k = 2; k <= n; k++)
     {
-        double el = pow(-1, k) * (double)factorial(k) / (double)factorial(4 + k);
-        result += el;
+        current *= getRecurent(k);
+        result += current;
     }
     return result;
 }
@@ -101,13 +96,13 @@ double getDouble()
 }
 double getSumE(const double e)
 {
-    double result = 0.0;
-    double el = 0.0;
-    for (int k = 1; k < 1000; k++)
+    double current = -1.0 / 120.0;
+    double result = current;
+    for (int k = 2; k < 1000; k++)
     {
-        el = pow(-1, k) * (double)factorial(k) / (double)factorial(4 + k);
-        result += el;
-        if (fabs(el) <= e) {
+        current *= getRecurent(k);
+        result += current;
+        if (fabs(current) <= e) {
             break;
         }
     }
