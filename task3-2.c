@@ -74,10 +74,9 @@ double getRecurent(const int i)
 }
 double getSumN(const int n)
 {
-    if (n <= 0) return 0.0;
-    double current = -1.0 / 120.0;
+    double current = -1;
     double result = current;
-    for (int k = 2; k <= n; k++)
+    for (int k = 1; k < n; k++)
     {
         current *= getRecurent(k);
         result += current;
@@ -86,7 +85,7 @@ double getSumN(const int n)
 }
 double getDouble()
 {
-    double value = 0.0;
+    double value = 0;
     if (!scanf("%lf", &value))
     {
         printf("Ошибка\n");
@@ -96,15 +95,12 @@ double getDouble()
 }
 double getSumE(const double e)
 {
-    double current = -1.0 / 120.0;
-    double result = current;
-    for (int k = 2; k < 1000; k++)
+    double current = -1;
+    double result = 0;
+    for (int k = 1; fabs(current) > e; k++)
     {
-        current *= getRecurent(k);
         result += current;
-        if (fabs(current) <= e) {
-            break;
-        }
+        current *= getRecurent(k);
     }
     return result;
 }
