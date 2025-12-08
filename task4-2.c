@@ -152,7 +152,7 @@ int getValue()
     if (!scanf("%d", &value))
     {
         printf("Ошибка ввода!\n");
-        abort();
+        exit(1);
     }
     return value;
 }
