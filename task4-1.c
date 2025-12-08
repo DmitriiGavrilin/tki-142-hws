@@ -157,7 +157,7 @@ size_t getSize(char* message)
 {
     printf("%s", message);
     int value = getValue();
-    if (value <= DBL_EPSILON)
+    if (value <= 0)
     {
         printf("Размер должен быть положительным числом!\n");
         abort();
