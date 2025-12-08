@@ -24,7 +24,7 @@ void fillArray(int* arr, const size_t size);
  * @param arr массив
  * @param size размер массива
  */
-void printArray(int* arr, const size_t size);
+void printArray(const int* arr, const size_t size);
 /**
  * @brief заполняет массив случайными числами, выбранными из введенного интервала чисел
  * @param arr массив
@@ -39,12 +39,19 @@ void fillRandom(int* arr, const size_t size);
  */
 int* copyArray(const int* arr, const size_t size);
 /**
+ * @brief выделяет память для массива целых чисел заданного размера с проверкой успешности выделения
+ * @param size размер массива (количество элементов)
+ * @return указатель на выделенную память для массива
+ * @note в случае ошибки выделения памяти выводит сообщение об ошибке и завершает программу
+ */
+int* allocateArray(const size_t size);
+/**
  * @brief ищет сумму отрицательных элементов массива, кратных 10
  * @param arr массив
  * @param size размер массива
  * @return сумма отрицательных элементов массива, кратных 10
  */
-int sumNegativeMultiplesOf10(int* arr, const size_t size);
+int sumNegativeMultiplesOf10(const int* arr, const size_t size);
 /**
  * @brief меняет местами первые k элементов в обратном порядке
  * @param arr массив
@@ -52,7 +59,7 @@ int sumNegativeMultiplesOf10(int* arr, const size_t size);
  * @param k введенное число элементов
  * @return измененную копию исходного массива
  */
-void reverseFirstKElements(int* arr, const size_t size, int k);
+void reverseFirstKElements(int* arr, const size_t size, const int k);
 /**
  * @brief ищет пару соседних элементов массива, произведение которых равно введенному значению произведения
  * @param arr массив
@@ -60,7 +67,7 @@ void reverseFirstKElements(int* arr, const size_t size, int k);
  * @param targetProduct введенное значение произведения
  * @return соседние элементы массива, произведение которых равно введенному значению произведения
  */
-int hasAdjacentPairWithProduct(int* arr, const size_t size, int targetProduct);
+int hasAdjacentPairWithProduct(const int* arr, const size_t size, const int targetProduct);
 /**
  * @brief RANDOM - заполнение массива случайными числами в пределах введенного интервала чисел
  * @brief MANUAL - заполнение массива вручную
@@ -74,12 +81,7 @@ int main(void)
 {
     srand(time(NULL));
     size_t size = getSize("Введите размер массива: ");
-    int* arr = malloc(size * sizeof(int));
-    if (arr == NULL)
-    {
-        printf("Ошибка выделения памяти!\n");
-        exit(1);
-    }
+    int* arr = allocateArray(size);
     printf("Выберите способ заполнения массива:\n"
         "%d - случайными числами, %d - вручную: ", RANDOM, MANUAL);
     int choice = getValue();
@@ -104,27 +106,13 @@ int main(void)
     printf("Сумма отрицательных элементов, кратных 10: %d\n", sum);
     // 2) Заменить первые k элементов на те же в обратном порядке
     printf("Задача 2:\n");
-    if (size > 0)
-    {
-        printf("Введите k (не больше %zu): ", size);
-        int k = getValue();
-        if (k > size || k <= 0)
-        {
-            printf("k должно быть в диапазоне от 1 до %zu\n", size);
-            exit(1);
-        }
-        else{
-            int* arrCopy = copyArray(arr, size);
-            reverseFirstKElements(arrCopy, size, k);
-            printf("Массив после замены первых %d элементов: ", k);
-            printArray(arrCopy, size);
-            free(arrCopy);
-        }
-    }
-    else
-    {
-        printf("Массив пуст!\n");
-    }
+    printf("Введите k (не больше %zu): ", size);
+    int k = getValue(); 
+    int* arrCopy = copyArray(arr, size);
+    reverseFirstKElements(arrCopy, size, k);
+    printf("Массив после замены первых %d элементов: ", k);
+    printArray(arrCopy, size);
+    free(arrCopy);
     // 3) Проверить наличие пары соседних элементов с заданным произведением
     printf("Задача 3\n");
     if (size > 1)
@@ -172,7 +160,7 @@ void fillArray(int* arr, const size_t size)
         arr[i] = getValue();
     }
 }
-void printArray(int* arr, const size_t size)
+void printArray(const int* arr, const size_t size)
 {
     printf("[");
     for (size_t i = 0; i < size; i++)
@@ -201,21 +189,26 @@ void fillRandom(int* arr, const size_t size)
 }
 int* copyArray(const int* arr, const size_t size)
 {
-    int* copyArr = malloc(sizeof(int) * size);
-    if (copyArr == NULL)
-    {
-        printf("Ошибка выделения памяти!\n");
-        exit(1);
-    }
+    int* copyArr = allocateArray(size);
     for (size_t i = 0; i < size; i++)
     {
         copyArr[i] = arr[i];
     }
     return copyArr;
 }
+int* allocateArray(const size_t size)
+{
+    int* arr = malloc(size * sizeof(int));
+    if (arr == NULL)
+    {
+        printf("Ошибка выделения памяти для массива размера %zu!\n", size);
+        exit(1);
+    }
+    return arr;
+}
 // Функции для задач
 // 1) Найти сумму отрицательных элементов, кратных 10
-int sumNegativeMultiplesOf10(int* arr, const size_t size)
+int sumNegativeMultiplesOf10(const int* arr, const size_t size)
 {
     int sum = 0;
     for (size_t i = 0; i < size; i++)
@@ -228,9 +221,8 @@ int sumNegativeMultiplesOf10(int* arr, const size_t size)
     return sum;
 }
 // 2) Заменить первые k элементов на те же в обратном порядке
-void reverseFirstKElements(int* arr, const size_t size, int k)
+void reverseFirstKElements(int* arr, const size_t size, const int k)
 {
-    if (k > size) printf("k не может быть больше размера массива!\n");
     for (int i = 0; i < k / 2; i++)
     {
         int reserveValue = arr[i];
@@ -239,7 +231,7 @@ void reverseFirstKElements(int* arr, const size_t size, int k)
     }
 }
 // 3) Проверить наличие пары соседних элементов с заданным произведением
-int hasAdjacentPairWithProduct(int* arr, const size_t size, int targetProduct)
+int hasAdjacentPairWithProduct(const int* arr, const size_t size, const int targetProduct)
 {
     for (size_t i = 0; i < size - 1; i++)
     {
