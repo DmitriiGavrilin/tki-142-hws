@@ -89,6 +89,7 @@ int main(void)
     size_t size = getSize("Введите размер массива C: ");
     if (size % 2 == 0) {
         printf("Для задачи 1 размер должен быть нечетным!\n");
+        exit(1);
     }
     int* C = malloc(size * sizeof(int));
     if (C == NULL)
