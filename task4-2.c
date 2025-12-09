@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include <float.h>
+#include <stdbool.h>
 #include <time.h>
 /**
  * @brief считывает целое значение с клавиатуры с проверкой ввода
@@ -25,7 +26,7 @@ void fillArray(int* arr, const size_t size);
  * @param arr массив
  * @param size размер массива
  */
-void printArray(int* arr, const size_t size);
+void printArray(const int* arr, const size_t size);
 /**
  * @brief заполняет массив случайными числами, выбранными из введенного интервала чисел
  * @param arr массив
@@ -40,19 +41,26 @@ void fillRandom(int* arr, const size_t size);
  */
 int* copyArray(const int* arr, const size_t size);
 /**
+ * @brief выделяет память для массива целых чисел заданного размера с проверкой успешности выделения
+ * @param size размер массива (количество элементов)
+ * @return указатель на выделенную память для массива
+ * @note в случае ошибки выделения памяти выводит сообщение об ошибке и завершает программу
+ */
+int* allocateArray(const size_t size);
+/**
  * @brief находит индекс минимального элемента массива
  * @param arr массив
  * @param size размер массива
  * @return индекс минимального элемента
  */
-int findMinEl(int* arr, const size_t size);
+int findMinEl(const int* arr, const size_t size);
 /**
  * @brief находит средний элемент массива (при нечетном размере)
  * @param arr массив
  * @param size размер массива
  * @return значение среднего элемента
  */
-int findMiddleEl(int* arr, const size_t size);
+int findMiddleEl(const int* arr, const size_t size);
 /**
  * @brief заменяет минимальный элемент массива на средний
  * @param arr массив
@@ -64,20 +72,29 @@ void replaceMinWithMiddle(int* arr, const size_t size);
  * @param num число для проверки
  * @return 1 если содержит цифру 5, иначе 0
  */
-int containsDigit5(int num);
+bool containsDigit5(int num);
 /**
- * @brief удаляет из массива все элементы, содержащие цифру 5
- * @param arr указатель на массив
- * @param size указатель на размер массива
+ * @brief подсчитывает количество элементов, не содержащих цифру 5
+ * @param arr исходный массив
+ * @param size размер исходного массива
+ * @return количество элементов без цифры 5
  */
-void removeElementsWithDigit5(int** arr, size_t* size);
+size_t getCountWithoutDigit5(const int* arr, const size_t size);
+/**
+ * @brief создает новый массив без элементов, содержащих цифру 5
+ * @param arr исходный массив
+ * @param size размер исходного массива
+ * @param newarr новый массив (уже выделенная память)
+ * @param newSize размер нового массива
+ */
+void removeElementsWithDigit5(const int* arr, const size_t size, int* newarr, const size_t newSize);
 /**
  * @brief формирует новый массив A из массива C по правилу
  * @param C исходный массив
  * @param size размер массива
  * @return новый массив A
  */
-int* formArrayFromC(int* C, const size_t size);
+int* formArrayFromC(const int* C, const size_t size);
 /**
  * @brief RANDOM - заполнение массива случайными числами в пределах введенного интервала чисел
  * @brief MANUAL - заполнение массива вручную
@@ -91,12 +108,7 @@ int main(void)
         printf("Для задачи 1 размер должен быть нечетным!\n");
         exit(1);
     }
-    int* C = malloc(size * sizeof(int));
-    if (C == NULL)
-    {
-        printf("Ошибка выделения памяти!\n");
-        exit(1);
-    }
+    int* C = allocateArray(size);    
     printf("Выберите способ заполнения массива:\n"
         "%d - случайными числами, %d - вручную: ", RANDOM, MANUAL);
     int choice = getValue();
@@ -126,16 +138,19 @@ int main(void)
     // 2) Удалить все элементы, содержащие цифру 5
     printf("Задача 2:\n");
     printf("Происходит удаление элементов, содержащих цифру 5\n");
-    int* C_copy2 = copyArray(C, size);
-    size_t size_copy2 = size;
-    removeElementsWithDigit5(&C_copy2, &size_copy2);
-    if (size_copy2 == 0) {
-        printf("Все элементы были удалены. Массив пуст.\n");
-    } else {
-        printf("Массив после удаления элементов с цифрой 5 (новый размер: %zu): ", size_copy2);
-        printArray(C_copy2, size_copy2);
+    size_t newSize = getCountWithoutDigit5(C, size);
+    if (newSize == 0)
+    {
+        printf("Все элементы массива содержали цифру 5. Очищенный массив пуст!\n");
     }
-    free(C_copy2);
+    else
+    {
+        int* newC = allocateArray(newSize);
+        removeElementsWithDigit5(C, size, newC, newSize);
+        printf("Очищенный массив выглядит так (новый размер: %zu):", newSize);
+        printArray(newC, newSize);
+        free(newC);
+    }    
     // 3) Сформировать массив A из массива C по правилу
     printf("Задача 3:\n");
     printf("Происходит формирование массива A из массива C\n");
@@ -176,7 +191,7 @@ void fillArray(int* arr, const size_t size)
         arr[i] = getValue();
     }
 }
-void printArray(int* arr, const size_t size)
+void printArray(const int* arr, const size_t size)
 {
     printf("[");
     for (size_t i = 0; i < size; i++)
@@ -205,22 +220,27 @@ void fillRandom(int* arr, const size_t size)
 }
 int* copyArray(const int* arr, const size_t size)
 {
-    int* copyArr = malloc(sizeof(int) * size);
-    if (copyArr == NULL)
-    {
-        printf("Ошибка выделения памяти!\n");
-        exit(1);
-    }
+    int* copyArr = allocateArray(size);
     for (size_t i = 0; i < size; i++)
     {
         copyArr[i] = arr[i];
     }
     return copyArr;
 }
+int* allocateArray(const size_t size)
+{
+    int* arr = malloc(size * sizeof(int));
+    if (arr == NULL)
+    {
+        printf("Ошибка выделения памяти для массива размера %zu!\n", size);
+        exit(1);
+    }
+    return arr;
+}
 // Функции для задач
 // 1) Замена минимального элемента на средний
 // поиск минимального элемента
-int findMinEl(int* arr, const size_t size)
+int findMinEl(const int* arr, const size_t size)
 {
     int minElIndex = 0;
     for (size_t i = 1; i < size; i++)
@@ -233,7 +253,7 @@ int findMinEl(int* arr, const size_t size)
     return minElIndex;
 }
 // поиск среднего элемента
-int findMiddleEl(int* arr, const size_t size)
+int findMiddleEl(const int* arr, const size_t size)
 {
     return arr[size / 2];
 }
@@ -247,67 +267,51 @@ void replaceMinWithMiddle(int* arr, const size_t size)
 }
 // 2) Удаление элементов, содержащих цифру 5
 // поиск элемента, содержащего цифру 5
-int containsDigit5(int el)
+bool containsDigit5(int el)
 {
     if (el < 0) el = -el;
     for (; el > 0; el /= 10)
     {
         if (el % 10 == 5)
         {
-            return 1;
+            return true;
         }
     }
-    return 0;
+    return false;
+}
+// подсчет количества элементов, не содержащих цифру 5
+size_t getCountWithoutDigit5(const int* arr, const size_t size)
+{
+    size_t count = 0;
+    for(size_t i = 0; i < size; i++)
+    {
+        if (!containsDigit5(arr[i]))
+        {
+            count++;
+        }
+    }
+    return count;
 }
 // удаление элемента, содержащего цифру 5
-void removeElementsWithDigit5(int** arr, size_t* size)
+void removeElementsWithDigit5(const int *arr, const size_t size, int *newarr, const size_t newSize)
 {
-    size_t newSize = 0;
-    for (size_t i = 0; i < *size; i++)
-    {
-        if (!containsDigit5((*arr)[i]))
-        {
-            newSize++;
-        }
-    }
-    if (newSize == 0)
-    {
-        free(*arr);
-        *arr = NULL;
-        *size = 0;
-        return;
-    }
-    int* newArr = malloc(newSize * sizeof(int));
-    if (newArr == NULL)
-    {
-        printf("Ошибка выделения памяти!\n");
-        exit(1);
-    }
     size_t newIndex = 0;
-    for (size_t i = 0; i < *size; i++)
+    for (size_t i = 0; i < size; i++)
     {
-        if (!containsDigit5((*arr)[i]))
+        if (!containsDigit5(arr[i]))
         {
-            newArr[newIndex++] = (*arr)[i];
+            newarr[newIndex++] = arr[i];
         }
         else
         {
-            printf("Удален элемент arr[%zu] = %d (содержит цифру 5)\n", i, (*arr)[i]);
+            printf("Элемент arr[%zu] = %d содержит цифру 5 и будет удален из массив\n", i, arr[i]);
         }
     }
-    free(*arr);
-    *arr = newArr;
-    *size = newSize;
 }
 // 3) Формирование массива A из массива C
-int* formArrayFromC(int* C, const size_t size)
+int* formArrayFromC(const int* C, const size_t size)
 {
-    int* A = malloc(size * sizeof(int));
-    if (A == NULL)
-    {
-        printf("Ошибка выделения памяти!\n");
-        exit(1);
-    }
+    int* A = allocateArray(size);
     for (size_t i = 0; i < size; i++)
     {
         if (i % 2 == 0)
