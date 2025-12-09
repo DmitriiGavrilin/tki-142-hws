@@ -12,7 +12,7 @@ int getValue();
  * @param message текстовое сообщение о необходимости ввода массива
  * @return размер массива
  */
-size_t getSize(char* message);
+size_t getSize(const char* message);
 /**
  * @brief считывает каждое из значений элементов массива
  * @param arr массив
@@ -141,7 +141,7 @@ int getValue()
     }
     return value;
 }
-size_t getSize(char* message)
+size_t getSize(const char* message)
 {
     printf("%s", message);
     int value = getValue();
