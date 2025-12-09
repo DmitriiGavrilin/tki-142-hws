@@ -14,7 +14,7 @@ int getValue();
  * @param message текстовое сообщение о необходимости ввода массива
  * @return размер массива
  */
-size_t getSize(char* message);
+size_t getSize(const char* message);
 /**
  * @brief считывает каждое из значений элементов массива
  * @param arr массив
@@ -100,6 +100,10 @@ int* formArrayFromC(const int* C, const size_t size);
  * @brief MANUAL - заполнение массива вручную
  */
 enum {RANDOM = 1, MANUAL};
+/**
+ * @brief Точка входа в программу
+ * @return 0, если программа выполнена корректно, иначе 1
+ */
 int main(void)
 {
     srand(time(NULL));
@@ -172,7 +176,7 @@ int getValue()
     }
     return value;
 }
-size_t getSize(char* message)
+size_t getSize(const char* message)
 {
     printf("%s", message);
     int value = getValue();
