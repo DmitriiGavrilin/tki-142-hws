@@ -223,7 +223,7 @@ int sumNegativeMultiplesOf10(const int* arr, const size_t size)
 // 2) Заменить первые k элементов на те же в обратном порядке
 void reverseFirstKElements(int* arr, const size_t size, const int k)
 {
-    for (int i = 0; i < k / 2; i++)
+    for (size_t i = 0; i < k / 2; i++)
     {
         int reserveValue = arr[i];
         arr[i] = arr[k - i - 1];
