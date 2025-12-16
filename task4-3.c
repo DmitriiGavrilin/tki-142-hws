@@ -71,12 +71,21 @@ void replaceMaxWithZero(int** arr, const size_t rows, const size_t columns);
  */
 bool isFirstElementDivisibleBy3(const int* const* arr, const size_t rowIndex);
 /**
- * @brief вставляет перед всеми строками, первый элемент которых делится на 3, строку из нулей
- * @param arr указатель на массив
- * @param rows указатель на количество строк
- * @param columns количество столбцов
+ * @brief подсчитывает количество строк, перед которыми нужно вставить строки из нулей
+ * @param arr массив
+ * @param rows количество строк
+ * @return количество строк для вставки
  */
-void insertZeroRows(int*** arr, size_t* rows, const size_t columns);
+size_t countRowsToInsert(const int* const* arr, const size_t rows);
+/**
+ * @brief создает новый массив с вставленными строками из нулей
+ * @param sourceArr исходный массив
+ * @param sourceRows количество строк в исходном массиве
+ * @param columns количество столбцов
+ * @param destRows указатель для сохранения количества строк в новом массиве
+ * @return новый массив или NULL при ошибке
+ */
+int** createArrayWithZeroRows(const int* const* sourceArr, const size_t sourceRows, const size_t columns, size_t* destRows);
 /**
  * @brief RANDOM - заполнение массива случайными числами в пределах введенного интервала чисел
  * @brief MANUAL - заполнение массива вручную
@@ -88,14 +97,18 @@ enum {RANDOM = 1, MANUAL};
  */
 int main(void)
 {
-    srand(time(NULL));
+    srand((unsigned int)time(NULL));
     size_t rows = getSize("Введите количество строк массива: ");
     size_t columns = getSize("Введите количество столбцов массива: ");
-    if (columns == 0) {
-        printf("Количество столбцов должно быть больше 0!\n");
-        exit(1);
+    if (columns == 0 || rows == 0) {
+        printf("Количество строк и столбцов должно быть больше 0!\n");
+        return 1;
     }
     int** arr = allocateArray(rows, columns);
+    if (arr == NULL) {
+        printf("Не удалось выделить память для массива!\n");
+        return 1;
+    }
     printf("Выберите способ заполнения массива:\n"
         "%d - случайными числами, %d - вручную: ", RANDOM, MANUAL);
     int choice = getValue();
@@ -110,22 +123,28 @@ int main(void)
         default:
             printf("Неверный выбор!\n");
             freeArray(arr, rows);
-            exit(1);
+            return 1;
     }
     printf("Исходный массив:\n");
     printArray((const int* const*)arr, rows, columns);
-    printf("Задача 1:");
+    printf("Задача 1:\n");
     int** arrCopy1 = copyArray((const int* const*)arr, rows, columns);
+    if (arrCopy1 == NULL) {
+        printf("Не удалось создать копию массива для задачи 1!\n");
+        freeArray(arr, rows);
+        return 1;
+    }
     replaceMaxWithZero(arrCopy1, rows, columns);
     printf("Массив после замены максимального элемента каждой строки нулем:\n");
     printArray((const int* const*)arrCopy1, rows, columns);
-    printf("Задача 2:");
-    int** arrCopy2 = copyArray((const int* const*)arr, rows, columns);
-    size_t newRows = rows;
-    insertZeroRows(&arrCopy2, &newRows, columns);
-    printf("Массив после вставки строк из нулей:\n");
-    printf("Новый размер: %zu строк × %zu столбцов\n", newRows, columns);
-    printArray((const int* const*)arrCopy2, newRows, columns);
+    printf("Задача 2:\n");
+    size_t newRows = 0;
+    int** arrCopy2 = createArrayWithZeroRows((const int* const*)arr, rows, columns, &newRows);
+    if (arrCopy2 != NULL) {
+        printf("Массив после вставки строк из нулей:\n");
+        printf("Новый размер: %zu строк × %zu столбцов\n", newRows, columns);
+        printArray((const int* const*)arrCopy2, newRows, columns);
+    }
     freeArray(arr, rows);
     freeArray(arrCopy1, rows);
     freeArray(arrCopy2, newRows);
@@ -155,10 +174,16 @@ size_t getSize(const char* message)
 }
 void fillArray(int** arr, const size_t rows, const size_t columns)
 {
-    for (size_t i = 0; i < rows; i++)
-    {
-        for (size_t j = 0; j < columns; j++)
-        {
+    if (arr == NULL || rows == 0 || columns == 0) {
+        printf("Неверные параметры для заполнения массива!\n");
+        return;
+    }
+    for (size_t i = 0; i < rows; i++) {
+        if (arr[i] == NULL) {
+            printf("Ошибка: строка %zu равна NULL!\n", i);
+            continue;
+        }
+        for (size_t j = 0; j < columns; j++) {
             printf("Введите элемент arr[%zu][%zu]: ", i, j);
             arr[i][j] = getValue();
         }
@@ -166,10 +191,20 @@ void fillArray(int** arr, const size_t rows, const size_t columns)
 }
 void printArray(const int* const* arr, const size_t rows, const size_t columns)
 {
-    for (size_t i = 0; i < rows; i++)
-    {
-        for (size_t j = 0; j < columns; j++)
-        {
+    if (arr == NULL) {
+        printf("Массив пуст (NULL)!\n");
+        return;
+    }
+    if (rows == 0 || columns == 0) {
+        printf("Размеры массива некорректны!\n");
+        return;
+    }
+    for (size_t i = 0; i < rows; i++) {
+        if (arr[i] == NULL) {
+            printf("(Строка %zu: NULL)\n", i);
+            continue;
+        }
+        for (size_t j = 0; j < columns; j++) {
             printf("%5d", arr[i][j]);
         }
         printf("\n");
@@ -178,26 +213,34 @@ void printArray(const int* const* arr, const size_t rows, const size_t columns)
 }
 void fillRandom(int** arr, const size_t rows, const size_t columns)
 {
+    if (arr == NULL || rows == 0 || columns == 0) {
+        printf("Неверные параметры для заполнения случайными числами!\n");
+        return;
+    }
     printf("Введите начало диапазона: ");
     int start = getValue();
     printf("Введите конец диапазона: ");
     int end = getValue();
-    
     if(start >= end)
     {
         printf("Ошибка! Конечное значение должно быть больше начального\n");
         exit(1);
     }
-    for (size_t i = 0; i < rows; i++)
-    {
-        for (size_t j = 0; j < columns; j++)
-        {
+    for (size_t i = 0; i < rows; i++) {
+        if (arr[i] == NULL) {
+            printf("Ошибка: строка %zu равна NULL!\n", i);
+            continue;
+        }
+        for (size_t j = 0; j < columns; j++) {
             arr[i][j] = rand() % (end - start + 1) + start;
         }
     }
 }
 int** allocateArray(const size_t rows, const size_t columns)
 {
+    if (rows == 0 || columns == 0) {
+        return NULL;
+    }
     int** arr = malloc(rows * sizeof(int*));
     if (arr == NULL)
     {
@@ -222,119 +265,128 @@ int** allocateArray(const size_t rows, const size_t columns)
 }
 void freeArray(int** arr, const size_t rows)
 {
-    if (arr != NULL)
-    {
-        for (size_t i = 0; i < rows; i++)
-        {
-            if (arr[i] != NULL)
-            {
-                free(arr[i]);
-            }
-        }
-        free(arr);
+    if (arr == NULL) {
+        return;
     }
-}
-int** copyArray(const int* const* arr, const size_t rows, const size_t columns)
-{
-    int** copyArr = allocateArray(rows, columns);
     
     for (size_t i = 0; i < rows; i++)
     {
-        for (size_t j = 0; j < columns; j++)
-        {
+        free(arr[i]);
+    }
+    free(arr);
+}
+int** copyArray(const int* const* arr, const size_t rows, const size_t columns)
+{
+    if (arr == NULL || rows == 0 || columns == 0) {
+        printf("Неверные параметры для копирования массива!\n");
+        return NULL;
+    }
+    for (size_t i = 0; i < rows; i++) {
+        if (arr[i] == NULL) {
+            printf("Ошибка: исходная строка %zu равна NULL!\n", i);
+            return NULL;
+        }
+    }
+    int** copyArr = allocateArray(rows, columns);
+    if (copyArr == NULL) {
+        printf("Не удалось выделить память для копии массива!\n");
+        return NULL;
+    }
+    for (size_t i = 0; i < rows; i++) {
+        for (size_t j = 0; j < columns; j++) {
             copyArr[i][j] = arr[i][j];
         }
     }
-    
     return copyArr;
 }
-// Функции для задач
-// Задача 1/ Замена максимального элемента каждой строки нулем
-void replaceMaxWithZero(int** arr, const size_t rows, const size_t columns) {
-    for (size_t i = 0; i < rows; i++) 
-    {
+void replaceMaxWithZero(int** arr, const size_t rows, const size_t columns)
+{
+    if (arr == NULL || rows == 0 || columns == 0) {
+        printf("Неверные параметры для замены максимумов!\n");
+        return;
+    }
+    for (size_t i = 0; i < rows; i++) {
+        if (arr[i] == NULL) {
+            printf("Строка %zu равна NULL, пропускаем\n", i);
+            continue;
+        }
         int max = arr[i][0];
+        int maxCount = 1;
         for (size_t j = 1; j < columns; j++) {
             if (arr[i][j] > max) {
                 max = arr[i][j];
+                maxCount = 1;
+            } else if (arr[i][j] == max) {
+                maxCount++;
             }
         }
-        int replaced = 0;
-        for (size_t j = 0; j < columns; j++) {
-            if (arr[i][j] == max) {
-                arr[i][j] = 0;
-                replaced++;
+        if (maxCount > 0) {
+            int replaced = 0;
+            for (size_t j = 0; j < columns; j++) {
+                if (arr[i][j] == max) {
+                    arr[i][j] = 0;
+                    replaced++;
+                }
             }
-        }
-        
-        if (replaced > 0) {
-            printf("В строке %zu заменено %d максимальных элементов (значение %d) на 0\n", i, replaced, max);
+            if (replaced > 0) {
+                printf("В строке %zu заменено %d максимальных элементов (значение %d) на 0\n", i, replaced, max);
+            }
         }
     }
 }
-// Задача 2/ Вставка строк из нулей
-bool isFirstElementDivisibleBy3(const int* const* arr, const size_t rowIndex) {
-    return (abs(arr[rowIndex][0]) % 3 == 0);
+bool isFirstElementDivisibleBy3(const int* const* arr, const size_t rowIndex)
+{
+    if (arr == NULL || arr[rowIndex] == NULL) {
+        return false;
+    }
+    return (arr[rowIndex][0] % 3 == 0);
 }
-void insertZeroRows(int*** arr, size_t* rows, const size_t columns) {
+size_t countRowsToInsert(const int* const* arr, const size_t rows)
+{
+    if (arr == NULL || rows == 0) {
+        return 0;
+    }
     size_t rowsToInsert = 0;
-    for (size_t i = 0; i < *rows; i++) {
-        if (isFirstElementDivisibleBy3((const int* const*)(*arr), i)) {
+    for (size_t i = 0; i < rows; i++) {
+        if (arr[i] != NULL && isFirstElementDivisibleBy3(arr, i)) {
             rowsToInsert++;
         }
     }
+    return rowsToInsert;
+}
+int** createArrayWithZeroRows(const int* const* sourceArr, const size_t sourceRows, const size_t columns, size_t* destRows)
+{
+    if (sourceArr == NULL || destRows == NULL || sourceRows == 0 || columns == 0) {
+        printf("Неверные параметры!\n");
+        if (destRows) *destRows = 0;
+        return NULL;
+    }
+    size_t rowsToInsert = countRowsToInsert(sourceArr, sourceRows);
+    *destRows = sourceRows + rowsToInsert;
     if (rowsToInsert == 0) {
-        printf("Нет строк, у которых первый элемент делится на 3\n");
-        return;
+        printf("Нет строк для вставки, возвращаем копию исходного массива\n");
+        return copyArray(sourceArr, sourceRows, columns);
     }
     printf("Найдено %zu строк, у которых первый элемент делится на 3\n", rowsToInsert);
-    size_t newRows = *rows + rowsToInsert;
-    int** newArr = malloc(newRows * sizeof(int*));
-    if (newArr == NULL) {
-        printf("Ошибка выделения памяти!\n");
-        exit(1);
+    int** destArr = allocateArray(*destRows, columns);
+    if (destArr == NULL) {
+        printf("Не удалось выделить память для нового массива!\n");
+        *destRows = 0;
+        return NULL;
     }
-    for (size_t i = 0; i < newRows; i++){
-        newArr[i] = NULL;
-    }
-    size_t newIndex = 0;
-    for (size_t i = 0; i < *rows; i++) {
-        if (isFirstElementDivisibleBy3((const int* const*)(*arr), i)) {
-            newArr[newIndex] = malloc(columns * sizeof(int));
-            if (newArr[newIndex] == NULL) {
-                printf("Ошибка выделения памяти!\n");
-                for (size_t j = 0; j < newIndex; j++) {
-                    free(newArr[j]);
-                }
-                free(newArr);
-                exit(1);
-            }
+    size_t destIndex = 0;
+    for (size_t i = 0; i < sourceRows; i++) {
+        if (isFirstElementDivisibleBy3(sourceArr, i)) {
             for (size_t j = 0; j < columns; j++) {
-                newArr[newIndex][j] = 0;
+                destArr[destIndex][j] = 0;
             }
             printf("Вставлена строка из нулей перед строкой %zu\n", i);
-            newIndex++;
-        }
-        newArr[newIndex] = malloc(columns * sizeof(int));
-        if (newArr[newIndex] == NULL) {
-            printf("Ошибка выделения памяти!\n");
-            for (size_t j = 0; j <= newIndex; j++) {
-                free(newArr[j]);
-            }
-            free(newArr);
-            exit(1);
+            destIndex++;
         }
         for (size_t j = 0; j < columns; j++) {
-            newArr[newIndex][j] = (*arr)[i][j];
+            destArr[destIndex][j] = sourceArr[i][j];
         }
-        newIndex++;
+        destIndex++;
     }
-    if (*arr != NULL) {
-        for (size_t i = 0; i < *rows; i++) {
-            free((*arr)[i]);
-        }
-        free(*arr);
-    }
-    *arr = newArr;
-    *rows = newRows;
+    return destArr;
 }
